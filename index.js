@@ -15,7 +15,7 @@ const io = socketio(server);
 io.sockets.in('1234').clients(function(err, clients) {
     clients.forEach(client => {
         let user = io.sockets.connected[client];
-        console.log("Connected Client ", user.displayName);
+        //console.log("Connected Client ", user.displayName);
     });
 });
 io.on('connection', (socket) => {
@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
 //     if (error) throw error;
 //     console.log(clients); // => [Anw2LatarvGVVXEIAAAD]
 //   });
-    console.log(socket.id);
+    //console.log(socket.id);
     socket.on('join', ({name, room}, callback)=>{
         if(getUserInRoom(room).length === 0){
             var type = 'admin'; 
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
     socket.on('checkRoom', ({room, id})=>{
        
         let userse = getUserInRoom(room);
-         console.log(userse.length);
+         //console.log(userse.length);
         if(userse.length === 0){
             
             io.to(id).emit('checkRoomResponse', {response:false});
@@ -104,7 +104,7 @@ io.on('connection', (socket) => {
         }
     })
     socket.on('disconnect', ()=>{
-        console.log(socket.id, "user has left");
+        //console.log(socket.id, "user has left");
         // const userID = getUser(socket.id);
         // if(adminExist(socket.id)){
         //     console.log('no new admin'); 
@@ -118,7 +118,7 @@ io.on('connection', (socket) => {
            // io.to(user.room).emit('message', {user:'admin', text: `${user.name} has left`});
             
             if(adminExist(user.room)){
-                console.log('non admin');
+                //console.log('non admin');
             }else{
                 if(getUserInRoom(user.room).length === 0){
 
