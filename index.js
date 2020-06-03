@@ -51,19 +51,27 @@ io.on('connection', (socket) => {
         socket.to(socket.id).emit('isAdmin', true);
       }
        io.to(user.room).emit('roomData', {room:user.room, users: getUserInRoom(user.room), id: socket.id});
+       io.to(socket.id).emit('socketId', (socket.id))
        callback(); 
     });
+    
+    socket.on('sendChain',(message)=>{
+        console.log(message.user);
+        io.to(message.user).emit('addChain',(message))
+    })
 
-    socket.on('sendMessage', ({message, idMarker})=>{
-        const user = getUser(socket.id);
-        if(idMarker === ''){
-            var usersId = user.id;
-        }else{
-            var usersId = idMarker;
-        }
-        
+
+    socket.on('sendMessage', ({message, idthing})=>{
+//        console.log(idMarker)
+        // const user = getUser(socket.id);
+        // if(idMarker === ''){
+        //     var usersId = user.id;
+        // }else{
+        //     var usersId = idMarker;
+        // }
+        //console.log(usersId);
         const nextUserId = nextUser(socket.id);
-        io.to(nextUserId).emit('message', {user: usersId, text: message});
+        io.to(nextUserId).emit('message', {user: idthing, text: message});
         // if(nextUserId === newId){
         //    // io.to(user.room).emit('endGame', true);
         // }else{
@@ -74,7 +82,14 @@ io.on('connection', (socket) => {
        
     })
 
+    // socket.on('nextRound', (room)=>{
+    //     io.to(room).emit('round')
+    // })
+
+
     socket.on('sendDrawing', ({drawing, idMarker})=>{
+        console.log(idMarker);
+        //console.log(idMarker);
         const user = getUser(socket.id);
         const nextUserId = nextUser(socket.id);
         io.to(nextUserId).emit('receiveDrawing', {drawing:drawing, id:idMarker});
