@@ -8,7 +8,7 @@ const addUser = ({id, name, room, type}) => {
     if(existingUser){
         return {error: 'username is taken'};
     }
-    const user = {id, name, room, type};
+    const user = {id, name, room, type, game:[]};
 
     users.push(user);
 
@@ -62,9 +62,30 @@ const adminExist = (room) => {
 }
 const getUser = (id) => users.find((user)=> user.id === id);
 
+const addChain = ({id, message}) => {
+    //console.log(id);
+    let index = users.findIndex((user) => user.id === id);
+    //console.log(index);
+    //console.log("idMarker", users[index].name);
+    users[index].game.push(message);
+    //console.log(users[index].game);
+}
+addCurrent = ({id, message, idMarker}) =>{
+    let index = users.findIndex((user)=> user.id === id);
+    users[index].current = [idMarker, message]
+   // console.log(id, idMarker);
+    console.log(id, users[index].current);
+}
+const lastChain = (id) =>{
+    let index = users.findIndex((user)=>user.id === id);
+    let length = users[index].game.length;
+    return users[index].game[length - 1];
+    console.log(users[index].game);
+    
+}
 const updateUser = (id) => {
     let index = users.findIndex((user) => user.id === id);
-    console.log(index);
+    //console.log(index);
     console.log('ehhh admin', users[index].type);
     
      users[index].type = 'admin';
@@ -76,4 +97,4 @@ const getUserInRoom = (room) => users.filter((user)=> user.room === room);
 
 //const getIdInRoom = (room) => users.filter((user)=> user.room === room);
 console.log(getUserInRoom('1234'));
-module.exports = {addUser, removeUser, getUser, getUserInRoom, nextUser, adminExist, nextUserByRoom, updateUser};
+module.exports = {addUser, removeUser, getUser, getUserInRoom, nextUser, adminExist, nextUserByRoom, updateUser, addChain, lastChain};

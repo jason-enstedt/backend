@@ -1,7 +1,7 @@
 const express = require('express');
 const socketio = require('socket.io');
 const http = require('http');
-const   {addUser, removeUser, getUser, getUserInRoom, nextUser, adminExist, nextUserByRoom, updateUser } = require('./users.js');
+const   {addUser, removeUser, getUser, getUserInRoom, nextUser, adminExist, addChain, updateUser,lastChain } = require('./users.js');
 
 const PORT = process.env.PORT || 5000
 
@@ -10,14 +10,28 @@ const router = require('./router');
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+
+
 // io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
 
-io.sockets.in('1234').clients(function(err, clients) {
-    clients.forEach(client => {
-        let user = io.sockets.connected[client];
-        //console.log("Connected Client ", user.displayName);
-    });
-});
+// io.sockets.in('1234').clients(function(err, clients) {
+//     clients.forEach(client => {
+//         let user = io.sockets.connected[client];
+//         //console.log("Connected Client ", user.displayName);
+//     });
+// });
+
+
+// const users = [
+//     {id:1, name:"henry", room:456, type:"admin", game:[] }, 
+//     {id:2, name:"john", room:456, type:"player", game:[] }, 
+//     {id:3, name:"ben", room:456, type:"player", game:[] }, 
+//     {id:4, name:"tony", room:456, type:"player", game:[] }, 
+// ]
+// console.log(users);
+// users.forEach(e => {
+    
+// });
 io.on('connection', (socket) => {
 
 //     io.of('/').in(1234).clients((error, clients) => {
@@ -55,13 +69,13 @@ io.on('connection', (socket) => {
        callback(); 
     });
     
-    socket.on('sendChain',(message)=>{
-        console.log(message.user);
-        io.to(message.user).emit('addChain',(message))
-    })
+    // socket.on('sendChain',(message)=>{
+    //     console.log("chain id", message.id);
+    //     io.to(message.user).emit('addChain',(message));
+    // })
 
 
-    socket.on('sendMessage', ({message, idthing})=>{
+    socket.on('sendMessage', ({message, idthing, counter})=>{
 //        console.log(idMarker)
         // const user = getUser(socket.id);
         // if(idMarker === ''){
@@ -69,9 +83,45 @@ io.on('connection', (socket) => {
         // }else{
         //     var usersId = idMarker;
         // }
-        //console.log(usersId);
-        const nextUserId = nextUser(socket.id);
-        io.to(nextUserId).emit('message', {user: idthing, text: message});
+       //console.log("before", idthing, lastChain(idthing));
+        
+        addChain({id:idthing, message:message});
+        addCurrent({id:socket.id, message:message, idMarker:idthing});
+
+        
+        let thisUser = getUser(socket.id)
+        io.to(thisUser.room).emit('roomData', {room: thisUser.room, users: getUserInRoom(thisUser.room)});
+        let thisUsers = getUserInRoom(thisUser.room);
+        console.log(thisUser.game.length, counter);
+        const isEqual = (currentValue) => currentValue.game.length === counter;
+        if(thisUsers.every(isEqual)){
+            let trigger = false;
+            thisUsers.forEach((user)=>{
+                if(user.current[0] === nextUser(user.id)){
+                    io.to(user.room).emit('endGame');
+                    trigger = true;
+                    return;
+                }
+            })
+            console.log("success");
+            if(trigger == false){
+                 thisUsers.forEach((user, i)=>{
+                
+                io.to(nextUser(user.id)).emit('message', {text:user.current[1], user:user.current[0], counter:counter})
+                })
+            }
+           
+        }
+        
+
+
+       // console.log("after", idthing, lastChain(idthing));
+        //console.log('idthing', idthing);
+        //const nextUserId = nextUser(socket.id);
+        //io.to(nextUserId).emit('message', {user: idthing, text: message});
+
+
+        //io.to(idthing).emit('addChain',({payload:message}));
         // if(nextUserId === newId){
         //    // io.to(user.room).emit('endGame', true);
         // }else{
@@ -87,17 +137,44 @@ io.on('connection', (socket) => {
     // })
 
 
-    socket.on('sendDrawing', ({drawing, idMarker})=>{
-        console.log(idMarker);
+    socket.on('sendDrawing', ({drawing, idMarker, counter})=>{
         //console.log(idMarker);
-        const user = getUser(socket.id);
-        const nextUserId = nextUser(socket.id);
-        io.to(nextUserId).emit('receiveDrawing', {drawing:drawing, id:idMarker});
-        if(nextUserId === idMarker){
-           // io.to(user.room).emit('endGame', true);
-        }else{
+        //console.log(idMarker);
+        //const user = getUser(socket.id);
+       // const nextUserId = nextUser(socket.id);
+       // io.to(nextUserId).emit('receiveDrawing', {drawing:drawing, id:idMarker});
+        //io.to(idMarker).emit('addChain',({payload:drawing}));
+        
+        addChain({id:idMarker, message:drawing});
+        addCurrent({id:socket.id, message:drawing, idMarker:idMarker});
+        
+        let thisUser = getUser(socket.id)
+        io.to(thisUser.room).emit('roomData', {room: thisUser.room, users: getUserInRoom(thisUser.room)});
+        let thisUsers = getUserInRoom(thisUser.room);
+        console.log(thisUser.game.length, counter);
+        const isEqual = (currentValue) => currentValue.game.length === counter;
+        if(thisUsers.every(isEqual)){
+            let trigger = false;
+
+            thisUsers.forEach((user)=>{
+                if(user.current[0] === nextUser(user.id)){
+                    io.to(user.room).emit('endGame');
+                    trigger = true;
+                    return;
+                }
+            });
+
+            if(trigger === false){
+                console.log("success");
+                thisUsers.forEach((user, i)=>{
+                    
+                    io.to(nextUser(user.id)).emit('receiveDrawing', {drawing:user.current[1], id:user.current[0], counter:counter})
+                })  
+            }
             
         }
+        console.log(thisUser.name, thisUser.game);
+        
         
     })
 
