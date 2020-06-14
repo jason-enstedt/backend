@@ -9,7 +9,7 @@ const router = require('./router');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server, {origins: '*:*'});
 
 
 // io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
