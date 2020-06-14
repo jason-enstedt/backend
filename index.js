@@ -9,7 +9,8 @@ const router = require('./router');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketio(server, {origins: '*:*'});
+const io = socketio(server);
+io.origins('*:*');
 
 
 // io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
@@ -92,7 +93,7 @@ io.on('connection', (socket) => {
         let thisUser = getUser(socket.id)
         io.to(thisUser.room).emit('roomData', {room: thisUser.room, users: getUserInRoom(thisUser.room)});
         let thisUsers = getUserInRoom(thisUser.room);
-        console.log(thisUser.game.length, counter);
+        //console.log(thisUser.game.length, counter);
         const isEqual = (currentValue) => currentValue.game.length === counter;
         if(thisUsers.every(isEqual)){
             let trigger = false;
@@ -103,7 +104,7 @@ io.on('connection', (socket) => {
                     return;
                 }
             })
-            console.log("success");
+            //console.log("success");
             if(trigger == false){
                  thisUsers.forEach((user, i)=>{
                 
@@ -151,7 +152,7 @@ io.on('connection', (socket) => {
         let thisUser = getUser(socket.id)
         io.to(thisUser.room).emit('roomData', {room: thisUser.room, users: getUserInRoom(thisUser.room)});
         let thisUsers = getUserInRoom(thisUser.room);
-        console.log(thisUser.game.length, counter);
+        //console.log(thisUser.game.length, counter);
         const isEqual = (currentValue) => currentValue.game.length === counter;
         if(thisUsers.every(isEqual)){
             let trigger = false;
@@ -165,7 +166,7 @@ io.on('connection', (socket) => {
             });
 
             if(trigger === false){
-                console.log("success");
+               // console.log("success");
                 thisUsers.forEach((user, i)=>{
                     
                     io.to(nextUser(user.id)).emit('receiveDrawing', {drawing:user.current[1], id:user.current[0], counter:counter})
@@ -173,7 +174,7 @@ io.on('connection', (socket) => {
             }
             
         }
-        console.log(thisUser.name, thisUser.game);
+       // console.log(thisUser.name, thisUser.game);
         
         
     })
