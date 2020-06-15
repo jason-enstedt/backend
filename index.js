@@ -12,7 +12,13 @@ const server = http.createServer(app);
 const io = socketio(server);
 io.origins('*:*');
 
-
+app.get('/*', function(req, res) {
+    res.sendFile(path.join(__dirname, '/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+  })
 // io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
 
 // io.sockets.in('1234').clients(function(err, clients) {
